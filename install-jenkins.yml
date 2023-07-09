@@ -1,0 +1,55 @@
+---
+
+- name: install jenkins
+  hosts: workstation
+  become: true
+  #become_user: root
+
+  tasks:
+  - name: dnf update
+    dnf:
+      name: '*'
+      state: latest
+    when: ansible_distribution == "RedHat"
+
+  - name: add the jenkins repo
+    get_url:
+      url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+      dest: /etc/yum.repos.d/jenkins.repo
+
+  - name: import a key file from jenkins-ci
+    ansible.builtin.rpm_key:
+      state: present
+      key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+  - name: install updates (RedHat)
+    tags: always
+    dnf:
+      update_only: yes
+      update_cache: yes
+    when: ansible_distribution == "RedHat"
+
+  #- name: dnf update
+   # dnf:
+    #  name: '*'
+     # state: latest
+    #when: ansible_distribution == "RedHat"
+
+  - name: Install OpenJDK 11
+    package:
+      name: java-11-openjdk
+      state: present
+
+ # - name: install java
+   # command: dnf install java-11-openjdk-devel
+
+  - name: install jenkins
+    dnf:
+      name: jenkins
+      state: latest
+
+  - name: start jenkins
+    ansible.builtin.systemd:
+      enabled: yes
+      name: jenkins
+      state: started
