@@ -1,0 +1,49 @@
+---
+- name: Install Podman on Redhat8
+  hosts: nodes
+  become: true
+  tasks:
+    - name: update ec2 instance
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+    
+    - name: Execute dnf command
+      command: dnf module list | grep container-tools
+      register: module_output
+
+    - name: Display module output
+      debug:
+        var: module_output.stdout_lines
+
+    - name: Enable container-tools module
+      shell: sudo dnf module enable -y container-tools:rhel8
+    
+    - name: install container-tools module
+      dnf:
+        name: "@container-tools:rhel8"
+        state: latest
+    
+    - name: Install required packages
+      package:
+        name:
+          - podman
+          - slirp4netns
+          - skopeo
+          - buildah
+        state: present
+      when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == '8'
+
+    - name: Log error message for unsupported platform
+      debug:
+        msg: "No valid platform. Exiting"
+      when: ansible_distribution != 'RedHat'
+
+    - name: Start and enable Podman service
+      service:
+        name: podman
+        state: started
+        enabled: true
+
+
