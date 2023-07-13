@@ -1,0 +1,77 @@
+---
+- name: Deploy Web server
+  hosts: controller
+  remote_user: ansadmin
+  become: yes
+
+  tasks:
+    - name: Installing HTTPD
+      yum: name=httpd state=latest
+      tags:
+      - installapache
+
+    - name: Start Apache Server service
+      service: name=httpd state=started
+      tags:
+      - startapache
+
+    - name: Installing MariaDB server
+      yum:
+       name:
+       - mariadb-server
+       - mariadb-devel
+       - mariadb-connector-odbc
+       - mariadb-server-utils
+       - python3-PyMySQL
+       - php
+       state: latest
+       tags:
+       - installmariadb
+
+    - name: Start and Enable MariaDB Service
+      service: name=mariadb state=started
+      tags:
+       - startmariadb
+
+    - name: Update MariaDB root password
+      mysql_user:
+        name: root
+        host: controller
+        password: mysql
+        login_user: root
+        login_password: mysql
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+      tags:
+       - configuredb
+
+    - name: Create a New Database called Inventory
+      mysql_db: name=inventory state=present login_user=root login_password=mysql
+      tags:
+       - createdb
+
+    - name: Copy SQL file
+      copy: src=/source/servers.sql dest=/tmp/servers.sql
+      tags:
+       - copyfile
+
+    - name: Create Table called servers with data
+      shell: mysql -u root -pmysql inventory < /tmp/servers.sql
+      tags:
+       - dumpdata
+
+    - name: Copy Connection PHP File
+      copy: src=/source/connection.php dest=/var/www/html/
+      tags:
+       - copyfile
+
+    - name: Copy Index PHP file
+      copy: src=/source/index.php dest=/var/www/html/
+      tags:
+       - copyfile
+
+    - name: Restart Web Service
+      service: name=httpd state=restarted
+      tags:
+       - always
+...

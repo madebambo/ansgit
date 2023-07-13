@@ -1,0 +1,73 @@
+---
+- name: Deploying LAMP stack
+  hosts: controller
+  remote_user: ansadmin
+  become: yes
+
+  tasks:
+    - name: Installing Apache server
+      dnf:
+        name: httpd
+        state: latest
+    
+    - name: Start Apache Server service
+      service:
+        name: httpd
+        state: started
+        enabled: true
+      
+    - name: Installing MariaDB Server
+      dnf:
+        name:
+          - mariadb-server
+          - mariadb-devel
+          - mariadb-connector-odbc
+          - mariadb-server-utils
+          - python3-PyMySQL
+          - php
+        state: latest
+
+    - name: Start and Enable MariaDB Server Service
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Update MariaDB Server root password
+      mysql_user: 
+        name: ansadmin
+        host: controller
+        password: mysql
+        login_user: ansadmin
+        check_implicit_admin: yes
+        priv: "*.*:ALL,GRANT"
+
+    - name: Create a new database called Inventory
+      mysql_db:
+        name: inventory
+        state: present
+        login_user: ansadmin
+        login_password: mysql
+
+    - name: Copy SQL file
+      copy:
+        src: /source/servers.sql
+        dest: /tmp/servers.sql
+
+    - name: create table called servers with data
+      shell: mysql -u ansadmin -pmysql inventory < /tmp/servers.sql
+      
+    - name: Copy PHP files
+      copy: 
+        src: /source/connection.php
+        dest: /var/www/html/
+
+    - name: copy Index.php file
+      copy:
+        src: /source/index.php
+        dest: /var/www/html/
+
+    - name: Restart web service
+      service:
+        name: httpd
+        state: restarted    
