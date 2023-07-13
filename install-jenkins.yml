@@ -1,9 +1,9 @@
 ---
 
 - name: install jenkins
-  hosts: workstation
-  become: true
-  #become_user: root
+  hosts: controller
+  become: yes
+  become_user: root
 
   tasks:
   - name: dnf update
