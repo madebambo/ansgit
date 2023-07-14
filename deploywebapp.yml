@@ -53,7 +53,7 @@
     - name: Copy SQL file
       copy: src=/source/servers.sql dest=/tmp/servers.sql
       tags:
-       - copyfile
+      - copyfile
 
     - name: Create Table called servers with data
       shell: mysql -u root -pmysql inventory < /tmp/servers.sql
@@ -68,10 +68,10 @@
     - name: Copy Index PHP file
       copy: src=/source/index.php dest=/var/www/html/
       tags:
-       - copyfile
+      - copyfile
 
     - name: Restart Web Service
       service: name=httpd state=restarted
       tags:
-       - always
+      - always
 ...
