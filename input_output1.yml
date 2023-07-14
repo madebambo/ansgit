@@ -1,0 +1,21 @@
+---
+- hosts: controller
+  vars:
+   x: 45
+   my_name: "Modupe"
+
+  vars_prompt:
+   - name: username
+     prompt: Enter your username
+     private: false
+
+   - name: password
+     prompt: Enter your password
+     private: yes
+
+
+  gather_facts: false
+
+  tasks:
+  - debug:
+     msg: "The username is: {{username}} and password is: {{password}}"

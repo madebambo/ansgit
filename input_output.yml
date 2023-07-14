@@ -1,0 +1,20 @@
+---
+- hosts: controller
+  vars:
+   x: 45
+   my_name: "Modupe"
+
+  vars_prompt:
+   name: y
+   prompt: Enter the value for y
+   private: false
+
+  gather_facts: false
+
+  tasks:
+  - debug:
+     msg: 
+      - "The x value is: {{x}}"
+      - "The my_name value is: {{my_name}}"
+      - "The value of y is: {{y}}"
+
